@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "NANGOK 교육자료 캡처",
+  "version": "0.1.6",
+  "minimum_chrome_version": "116",
+  "description": "애터미 상품 상세에서 원하는 구간을 골라 교육자료 폴더에 순서대로 저장합니다.",
+  "permissions": [
+    "activeTab",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://kr.atomy.com/product/*",
+    "https://image.atomy.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "교육자료 캡처 열기"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://kr.atomy.com/product/*"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

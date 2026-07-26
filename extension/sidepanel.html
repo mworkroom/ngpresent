@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>교육자료 캡처</title>
+  <link rel="stylesheet" href="./sidepanel.css">
+</head>
+<body>
+  <main class="panel">
+    <header class="brand">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <div>
+        <b>NANGOK</b>
+        <span>교육자료 캡처</span>
+      </div>
+    </header>
+
+    <section class="intro">
+      <p class="eyebrow">아주 쉬운 3단계</p>
+      <h1>쇼핑몰 그림 저장하기</h1>
+      <p>화면에 보이는 큰 버튼만 순서대로 누르면 됩니다.</p>
+    </section>
+
+    <section class="card" id="setup-card">
+      <div class="card-title">
+        <span class="step">1</span>
+        <div>
+          <h2>폴더 만들기</h2>
+          <p>저장할 곳과 새 폴더 이름을 정합니다.</p>
+        </div>
+      </div>
+
+      <div class="folder-state" id="root-state" data-ready="false">
+        <span class="state-dot" aria-hidden="true"></span>
+        <span id="root-label">교육 자료 폴더를 선택해주세요.</span>
+      </div>
+      <button class="button secondary wide" id="pick-root" type="button">
+        바탕화면의 ‘교육 자료’ 선택
+      </button>
+
+      <label class="field" for="project-name">
+        <span>새 폴더 이름 <strong>필수</strong></span>
+        <input
+          id="project-name"
+          type="text"
+          autocomplete="off"
+          placeholder="예: 마이크로바이옴 KR"
+          maxlength="80"
+        >
+      </label>
+      <p class="path-preview" id="path-preview">교육 자료 \ 새 폴더 이름</p>
+      <p class="field-error" id="name-error" role="alert"></p>
+
+      <div class="refresh-notice">
+        <b>새로고침은 앱이 합니다</b>
+        <span>아래 버튼을 누르면 상품 페이지가 자동으로 새로고침됩니다.</span>
+      </div>
+
+      <button class="button primary wide start" id="start" type="button" disabled>
+        상품 페이지 새로고침하고 시작
+      </button>
+    </section>
+
+    <section class="card stage-card" id="product-card" hidden>
+      <div class="card-title">
+        <span class="step">2</span>
+        <div>
+          <h2>제품사진 저장하기</h2>
+          <p>필요한 제품사진을 모두 저장합니다.</p>
+        </div>
+      </div>
+
+      <div class="instruction product-instruction">
+        <b>한 장씩 눌러주세요</b>
+        <span>제품사진이 여러 장이면 계속 추가할 수 있습니다.</span>
+      </div>
+
+      <div class="saved-products" id="saved-products" data-empty="true">
+        <b id="product-count">저장된 제품사진: 0장</b>
+        <ul id="product-file-list"></ul>
+      </div>
+
+      <button class="button product-photo wide" id="pick-product" type="button">
+        <span aria-hidden="true">📷</span>
+        <span id="pick-product-label">제품사진 저장하기</span>
+        <small>페이지에서 사진을 한 번 누르기</small>
+      </button>
+
+      <button class="button primary wide stage-next" id="finish-product" type="button" disabled>
+        제품사진 저장 완료 → 다음 단계
+      </button>
+      <p class="button-hint" id="finish-product-hint">
+        제품사진을 한 장 이상 저장해야 다음으로 갈 수 있습니다.
+      </p>
+    </section>
+
+    <section class="card capture-card" id="capture-card" hidden>
+      <div class="card-title">
+        <span class="step">3</span>
+        <div>
+          <h2>본문 그림 저장하기</h2>
+          <p id="counter-label">다음 파일: 1.jpg</p>
+        </div>
+      </div>
+
+      <div class="instruction" id="instruction">
+        <b>상품 페이지에서</b>
+        <span>그림의 맨 위를 한 번 눌러주세요.</span>
+      </div>
+
+      <div class="selection-summary" id="selection-summary" hidden>
+        <b>선택 완료</b>
+        <span id="selection-size"></span>
+      </div>
+
+      <div class="capture-actions" id="capture-actions" hidden>
+        <button class="button primary wide" id="save-numbered" type="button">
+          <span id="save-numbered-label">1번으로 저장</span>
+        </button>
+        <button class="text-button" id="select-again" type="button">범위 다시 고르기</button>
+      </div>
+
+      <button class="button secondary wide" id="new-selection" type="button" hidden>
+        다음 그림 고르기
+      </button>
+    </section>
+
+    <p class="status" id="status" role="status"></p>
+
+    <section class="help" id="capture-help" hidden>
+      <b>기억할 것은 3개뿐입니다</b>
+      <ol>
+        <li>그림 맨 위 누르기</li>
+        <li>그림 맨 아래 누르기</li>
+        <li>저장 누르기</li>
+      </ol>
+    </section>
+  </main>
+
+  <div class="busy" id="busy" hidden>
+    <div class="spinner" aria-hidden="true"></div>
+    <b id="busy-title">그림을 저장하고 있습니다</b>
+    <p id="busy-message">페이지가 자동으로 움직여도 잠시 기다려주세요.</p>
+  </div>
+
+  <script type="module" src="./sidepanel.mjs"></script>
+</body>
+</html>

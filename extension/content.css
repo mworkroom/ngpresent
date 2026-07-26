@@ -1,0 +1,53 @@
+#ngpresent-capture-banner {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  top: 18px !important;
+  left: 50% !important;
+  width: min(520px, calc(100vw - 40px)) !important;
+  padding: 15px 20px !important;
+  transform: translateX(-50%) !important;
+  border: 3px solid #00aee8 !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22) !important;
+  color: #16252d !important;
+  font: 800 19px/1.4 "Segoe UI", "Noto Sans KR", sans-serif !important;
+  text-align: center !important;
+  pointer-events: none !important;
+}
+
+.ngpresent-capture-line {
+  position: absolute !important;
+  z-index: 2147483645 !important;
+  height: 5px !important;
+  background: #00aee8 !important;
+  box-shadow: 0 0 0 3px #fff, 0 5px 15px rgba(0, 100, 150, 0.35) !important;
+  pointer-events: none !important;
+}
+
+#ngpresent-capture-end-line {
+  background: #ef7d42 !important;
+}
+
+#ngpresent-capture-shade {
+  position: absolute !important;
+  z-index: 2147483644 !important;
+  border: 4px solid #00aee8 !important;
+  background: rgba(0, 174, 232, 0.12) !important;
+  pointer-events: none !important;
+}
+
+html.ngpresent-picking,
+html.ngpresent-picking * {
+  cursor: crosshair !important;
+}
+
+html.ngpresent-product-picking img.ngpresent-product-photo-option {
+  cursor: pointer !important;
+}
+
+html.ngpresent-product-picking img.ngpresent-product-photo-option:hover {
+  outline: 6px solid #00aee8 !important;
+  outline-offset: -6px !important;
+  filter: brightness(1.04) !important;
+}
