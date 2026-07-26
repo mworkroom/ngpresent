@@ -44,16 +44,16 @@
 <svg viewBox="0 0 48 48"><rect x="7" y="9" width="34" height="30" rx="5"/><path d="m12 33 9-10 7 7 5-5 8 8"/><circle cx="32" cy="18" r="3"/></svg>
 </span>
 <strong>그림이나 폴더를 선택하세요</strong>
-<p>폴더를 선택하면 PDF 파일 이름도 폴더명으로 자동 지정됩니다.</p>
+<p>폴더를 선택하면 폴더명으로 PDF를 만들고 같은 폴더에 저장합니다.</p>
 <div class="pickers">
 <label class="btn primary" for="files">
 <svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 14v5h14v-5"/></svg>
 그림 선택
 </label>
-<label class="btn secondary" for="folder-files">
+<button class="btn secondary" id="folder-picker" type="button">
 <svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/></svg>
 폴더 선택
-</label>
+</button>
 </div>
 <input class="file" id="files" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" multiple>
 <input class="file" id="folder-files" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" webkitdirectory directory multiple>
@@ -108,7 +108,7 @@
 <div class="actions">
 <button class="big" id="pdf" disabled>
 <span class="actionicon"><svg viewBox="0 0 32 32"><path d="M8 3h11l6 6v20H8ZM19 3v7h6M12 17h9M12 22h7"/></svg></span>
-<span><b>PDF 저장</b><small>폴더로 선택했다면 폴더명이 파일명이 됩니다.</small></span>
+<span><b>PDF 저장</b><small>폴더로 선택했다면 폴더명.pdf를 해당 폴더에 저장합니다.</small></span>
 <span class="arrow"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></span>
 </button>
 <button class="big" id="present" disabled>

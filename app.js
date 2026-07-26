@@ -2,6 +2,7 @@
 const $ = selector => document.querySelector(selector);
 const files = $("#files");
 const folderFiles = $("#folder-files");
+const folderPicker = $("#folder-picker");
 const upload = $("#upload");
 const grid = $("#grid");
 const empty = $("#empty");
@@ -61,25 +62,37 @@ const folder = images[0].folder;
 if (!folder || images.some(image => image.folder !== folder)) return "";
 return folder;
 };
+const commonDirectoryHandle = () => {
+if (!images.length) return null;
+const directoryHandle = images[0].directoryHandle;
+if (!directoryHandle || images.some(image => image.directoryHandle !== directoryHandle)) return null;
+return directoryHandle;
+};
 const safeFilename = name => {
 const safe = name.replace(/[<>:"/\\|?*\u0000-\u001F]/g, "_").replace(/[. ]+$/g, "").trim();
 return safe || "교육자료";
 };
 const pdfFilename = () => `${safeFilename(commonFolderName() || "교육자료")}.pdf`;
-function add(list) {
+function add(list, { folder = "", directoryHandle = null } = {}) {
 const all = [...list];
 const ok = all.filter(supported);
 const bad = all.length - ok.length;
 ok.forEach(file => images.push({
 id: makeId(),
 file,
-folder: rootFolder(file),
+folder: folder || rootFolder(file),
+directoryHandle,
 url: URL.createObjectURL(file)
 }));
 if (ok.length) {
 naturalSort();
-const folder = commonFolderName();
-const note = folder ? ` PDF는 ${safeFilename(folder)}.pdf로 저장됩니다.` : "";
+const commonFolder = commonFolderName();
+const filename = commonFolder ? `${safeFilename(commonFolder)}.pdf` : "";
+const note = commonDirectoryHandle()
+? ` ${filename}를 선택한 폴더에 저장합니다.`
+: filename
+? ` PDF는 ${filename}로 다운로드됩니다.`
+: "";
 message(`${ok.length}장의 그림을 추가했습니다.${note}`, "success");
 }
 if (bad) {
@@ -88,6 +101,41 @@ message(`PNG 또는 JPG가 아닌 파일 ${bad}개는 제외했습니다.`, "err
 files.value = "";
 folderFiles.value = "";
 render();
+}
+async function directoryImages(directoryHandle) {
+const found = [];
+const visit = async handle => {
+for await (const entry of handle.values()) {
+if (entry.kind === "file") {
+const file = await entry.getFile();
+if (supported(file)) found.push(file);
+} else if (entry.kind === "directory") {
+await visit(entry);
+}
+}
+};
+await visit(directoryHandle);
+return found;
+}
+async function chooseFolder() {
+if (!window.showDirectoryPicker) {
+folderFiles.click();
+return;
+}
+try {
+const directoryHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+const selected = await directoryImages(directoryHandle);
+if (!selected.length) {
+message("선택한 폴더에 PNG 또는 JPG 그림이 없습니다.", "error");
+return;
+}
+add(selected, { folder: directoryHandle.name, directoryHandle });
+} catch (error) {
+if (error?.name !== "AbortError") {
+console.error(error);
+message("폴더를 열지 못했습니다. 폴더 권한을 확인한 뒤 다시 선택해주세요.", "error");
+}
+}
 }
 function move(item, by) {
 const i = images.findIndex(image => image.id === item);
@@ -212,6 +260,14 @@ pdfBtn.disabled = true;
 presentBtn.disabled = true;
 try {
 if (!window.PDFLib) throw Error("library");
+const directoryHandle = commonDirectoryHandle();
+if (directoryHandle?.queryPermission) {
+let permission = await directoryHandle.queryPermission({ mode: "readwrite" });
+if (permission !== "granted" && directoryHandle.requestPermission) {
+permission = await directoryHandle.requestPermission({ mode: "readwrite" });
+}
+if (permission !== "granted") throw Error("permission");
+}
 const doc = await PDFLib.PDFDocument.create();
 for (const imageFile of images) {
 const bytes = await imageFile.file.arrayBuffer();
@@ -224,6 +280,13 @@ page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.h
 }
 const filename = pdfFilename();
 const blob = new Blob([await doc.save()], { type: "application/pdf" });
+if (directoryHandle) {
+const outputHandle = await directoryHandle.getFileHandle(filename, { create: true });
+const writable = await outputHandle.createWritable();
+await writable.write(blob);
+await writable.close();
+message(`그림 ${images.length}장을 선택한 폴더의 ${filename}로 저장했습니다.`, "success");
+} else {
 const url = URL.createObjectURL(blob);
 const link = document.createElement("a");
 link.href = url;
@@ -232,10 +295,17 @@ document.body.append(link);
 link.click();
 link.remove();
 setTimeout(() => URL.revokeObjectURL(url), 30000);
-message(`그림 ${images.length}장을 ${filename}로 저장했습니다.`, "success");
+message(`그림 ${images.length}장을 ${filename}로 다운로드했습니다.`, "success");
+}
 } catch (error) {
 console.error(error);
-message("PDF를 만들지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러주세요.", "error");
+if (error?.message === "library") {
+message("PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러주세요.", "error");
+} else if (error?.message === "permission") {
+message("선택한 폴더에 저장할 권한이 없습니다. 폴더를 다시 선택해주세요.", "error");
+} else {
+message("PDF를 저장하지 못했습니다. 폴더 권한이나 저장 공간을 확인한 뒤 다시 눌러주세요.", "error");
+}
 } finally {
 busy.classList.remove("open");
 pdfBtn.disabled = !images.length;
@@ -285,6 +355,7 @@ closing = false;
 }
 files.onchange = event => add(event.target.files);
 folderFiles.onchange = event => add(event.target.files);
+folderPicker.onclick = chooseFolder;
 ["dragenter", "dragover"].forEach(name => upload.addEventListener(name, event => {
 event.preventDefault();
 upload.classList.add("drag");
