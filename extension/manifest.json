@@ -4,6 +4,11 @@
   "version": "0.1.6",
   "minimum_chrome_version": "116",
   "description": "애터미 상품 상세에서 원하는 구간을 골라 교육자료 폴더에 순서대로 저장합니다.",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "128": "icon128.png"
+  },
   "permissions": [
     "activeTab",
     "sidePanel"
@@ -16,7 +21,12 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "교육자료 캡처 열기"
+    "default_title": "교육자료 캡처 열기",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "128": "icon128.png"
+    }
   },
   "side_panel": {
     "default_path": "sidepanel.html"
