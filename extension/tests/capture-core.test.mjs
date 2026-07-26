@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  calculateVisibleCaptureSlice,
   findNextCaptureNumber,
   getProductPhotoNames,
+  hasRemainingCaptureArea,
   hasProductPhoto,
   nextProductPhotoName,
   normalizeSelectionRange,
@@ -34,6 +36,50 @@ test("선택 방향과 길이에 관계없이 한 범위로 정리한다", () =>
   assert.deepEqual(
     normalizeSelectionRange({ startY: 3300, endY: 100 }),
     { startY: 100, endY: 3300 }
+  );
+});
+
+test("마지막 1픽셀 이하의 잔여 범위는 캡처 완료로 처리한다", () => {
+  assert.equal(
+    hasRemainingCaptureArea({ cursorY: 2099.4, rangeEndY: 2100 }),
+    false
+  );
+  assert.equal(
+    hasRemainingCaptureArea({ cursorY: 2098.9, rangeEndY: 2100 }),
+    true
+  );
+});
+
+test("브라우저 창 크기마다 실제 글자 영역만 캡처한다", () => {
+  assert.deepEqual(
+    calculateVisibleCaptureSlice({
+      cursorY: 100,
+      rangeEndY: 2100,
+      scrollY: 100,
+      contentHeight: 808
+    }),
+    { cropTop: 0, height: 808 }
+  );
+  assert.deepEqual(
+    calculateVisibleCaptureSlice({
+      cursorY: 100,
+      rangeEndY: 2100,
+      scrollY: 100,
+      contentHeight: 600
+    }),
+    { cropTop: 0, height: 600 }
+  );
+});
+
+test("스크롤이 끝난 실제 위치를 기준으로 화면 조각을 자른다", () => {
+  assert.deepEqual(
+    calculateVisibleCaptureSlice({
+      cursorY: 908,
+      rangeEndY: 2100,
+      scrollY: 900,
+      contentHeight: 808
+    }),
+    { cropTop: 8, height: 800 }
   );
 });
 

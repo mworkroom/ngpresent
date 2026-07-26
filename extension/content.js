@@ -6,6 +6,8 @@
   const START_LINE_ID = "ngpresent-capture-start-line";
   const END_LINE_ID = "ngpresent-capture-end-line";
   const SHADE_ID = "ngpresent-capture-shade";
+  const CURSOR_ID = "ngpresent-capture-cursor";
+  const CAPTURING_CLASS = "ngpresent-capturing";
 
   let phase = "idle";
   let startY = null;
@@ -39,6 +41,21 @@
     removeElement(START_LINE_ID);
     removeElement(END_LINE_ID);
     removeElement(SHADE_ID);
+  };
+
+  const hideCaptureCursor = () => removeElement(CURSOR_ID);
+
+  const moveCaptureCursor = (event) => {
+    if (phase === "idle") return;
+
+    let cursor = document.getElementById(CURSOR_ID);
+    if (!cursor) {
+      cursor = document.createElement("div");
+      cursor.id = CURSOR_ID;
+      document.body.append(cursor);
+    }
+    cursor.style.left = `${event.clientX}px`;
+    cursor.style.top = `${event.clientY}px`;
   };
 
   const setBanner = (text) => {
@@ -173,6 +190,7 @@
       image.classList.remove("ngpresent-product-photo-option");
     });
     markedProductImages = [];
+    hideCaptureCursor();
     removeElement(BANNER_ID);
   }
 
@@ -301,23 +319,39 @@
     );
   }
 
-  async function scrollForCapture(y) {
-    window.scrollTo({ top: Math.round(y), left: 0, behavior: "auto" });
-    await waitForVisibleImages();
-
+  function captureMetrics() {
     const bounds = detailBounds();
     if (!bounds) throw new Error("상품 상세 영역을 찾지 못했습니다.");
+
+    const documentHeight = document.documentElement.clientHeight;
+    const contentHeight =
+      Number.isFinite(documentHeight) && documentHeight > 1
+        ? Math.min(window.innerHeight, documentHeight)
+        : window.innerHeight;
 
     return {
       scrollY: window.scrollY,
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
+      contentHeight,
       detailLeft: bounds.left - window.scrollX,
       detailWidth: bounds.width
     };
   }
 
+  async function scrollForCapture(y) {
+    window.scrollTo({ top: Math.round(y), left: 0, behavior: "auto" });
+    await waitForVisibleImages();
+    return captureMetrics();
+  }
+
   window.addEventListener("click", handlePick, true);
+  window.addEventListener("pointermove", moveCaptureCursor, {
+    capture: true,
+    passive: true
+  });
+  document.addEventListener("mouseleave", hideCaptureCursor);
+  window.addEventListener("blur", hideCaptureCursor);
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message?.type === "NG_CAPTURE_PING") {
@@ -350,6 +384,7 @@
       originalScrollY = window.scrollY;
       stopSelection();
       clearMarkers();
+      document.documentElement.classList.add(CAPTURING_CLASS);
       hideFixedElements();
       sendResponse({ ok: true, originalScrollY });
       return false;
@@ -362,8 +397,18 @@
       return true;
     }
 
+    if (message?.type === "NG_CAPTURE_MEASURE") {
+      try {
+        sendResponse({ ok: true, ...captureMetrics() });
+      } catch (error) {
+        sendResponse({ ok: false, error: error.message });
+      }
+      return false;
+    }
+
     if (message?.type === "NG_CAPTURE_FINISH") {
       restoreFixedElements();
+      document.documentElement.classList.remove(CAPTURING_CLASS);
       window.scrollTo({ top: message.scrollY ?? originalScrollY, behavior: "auto" });
       sendResponse({ ok: true });
       return false;

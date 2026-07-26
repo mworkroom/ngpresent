@@ -1,6 +1,8 @@
 import {
+  calculateVisibleCaptureSlice,
   findNextCaptureNumber,
   getProductPhotoNames,
+  hasRemainingCaptureArea,
   nextProductPhotoName,
   normalizeSelectionRange,
   validateProjectName
@@ -12,6 +14,7 @@ const DB_VERSION = 1;
 const STORE_NAME = "folder-handles";
 const ROOT_HANDLE_KEY = "education-materials-root";
 const CAPTURE_DELAY_MS = 560;
+const CAPTURE_POSITION_RETRIES = 3;
 const MAX_OUTPUT_HEIGHT = 32760;
 const MAX_OUTPUT_PIXELS = 120_000_000;
 
@@ -434,6 +437,42 @@ async function normalizeProductPhoto(blob, sourceUrl) {
   return { blob: await canvasToPng(canvas), extension: "png" };
 }
 
+async function prepareCaptureSlice(cursorY, rangeEndY) {
+  for (let attempt = 0; attempt < CAPTURE_POSITION_RETRIES; attempt += 1) {
+    await sendToProduct({
+      type: "NG_CAPTURE_SCROLL_TO",
+      y: cursorY
+    });
+    await sleep(CAPTURE_DELAY_MS);
+
+    const metrics = await sendToProduct({ type: "NG_CAPTURE_MEASURE" });
+    const contentHeight = Math.min(
+      metrics.viewportHeight,
+      Number.isFinite(metrics.contentHeight) && metrics.contentHeight > 1
+        ? metrics.contentHeight
+        : metrics.viewportHeight
+    );
+    const slice = calculateVisibleCaptureSlice({
+      cursorY,
+      rangeEndY,
+      scrollY: metrics.scrollY,
+      contentHeight
+    });
+
+    if (slice.height > 1) {
+      return {
+        metrics,
+        cropTopCss: slice.cropTop,
+        sliceCss: slice.height
+      };
+    }
+  }
+
+  throw new Error(
+    "페이지 위치가 안정되지 않아 캡처하지 못했습니다. 잠시 후 다시 시도해주세요."
+  );
+}
+
 async function captureRange(range) {
   let cursorY = range.startY;
   let canvas = null;
@@ -444,15 +483,15 @@ async function captureRange(range) {
   let outputHeight = null;
   let safety = 0;
 
-  while (cursorY < range.endY - 0.5) {
+  while (hasRemainingCaptureArea({ cursorY, rangeEndY: range.endY })) {
     safety += 1;
     if (safety > 100) throw new Error("캡처 범위가 너무 깁니다.");
 
-    const metrics = await sendToProduct({
-      type: "NG_CAPTURE_SCROLL_TO",
-      y: cursorY
-    });
-    await sleep(CAPTURE_DELAY_MS);
+    const {
+      metrics,
+      cropTopCss,
+      sliceCss
+    } = await prepareCaptureSlice(cursorY, range.endY);
 
     const screenshot = await chrome.tabs.captureVisibleTab(
       captureTab.windowId,
@@ -487,15 +526,6 @@ async function captureRange(range) {
       context = canvas.getContext("2d", { alpha: false });
       context.fillStyle = "#fff";
       context.fillRect(0, 0, outputWidth, outputHeight);
-    }
-
-    const cropTopCss = Math.max(0, cursorY - metrics.scrollY);
-    const availableCss = metrics.viewportHeight - cropTopCss;
-    const sliceCss = Math.min(range.endY - cursorY, availableCss);
-
-    if (sliceCss <= 1) {
-      bitmap.close();
-      throw new Error("페이지 아래쪽을 캡처하지 못했습니다.");
     }
 
     const sourceX = Math.max(0, Math.round(metrics.detailLeft * currentScaleX));

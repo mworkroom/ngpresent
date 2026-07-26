@@ -37,9 +37,49 @@
   pointer-events: none !important;
 }
 
+#ngpresent-capture-cursor {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  width: 28px !important;
+  height: 28px !important;
+  transform: translate(-50%, -50%) !important;
+  border: 3px solid #00aee8 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(circle, #fff 0 2px, #16252d 3px 5px, transparent 6px)
+    !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px #16252d,
+    0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  box-sizing: border-box !important;
+  pointer-events: none !important;
+}
+
 html.ngpresent-picking,
 html.ngpresent-picking * {
   cursor: crosshair !important;
+}
+
+html.ngpresent-capturing {
+  scrollbar-color: transparent transparent !important;
+}
+
+html.ngpresent-capturing::-webkit-scrollbar-track,
+html.ngpresent-capturing::-webkit-scrollbar-thumb,
+html.ngpresent-capturing::-webkit-scrollbar-button,
+html.ngpresent-capturing::-webkit-scrollbar-corner,
+html.ngpresent-capturing body::-webkit-scrollbar-track,
+html.ngpresent-capturing body::-webkit-scrollbar-thumb,
+html.ngpresent-capturing body::-webkit-scrollbar-button,
+html.ngpresent-capturing body::-webkit-scrollbar-corner,
+html.ngpresent-capturing *::-webkit-scrollbar-track,
+html.ngpresent-capturing *::-webkit-scrollbar-thumb,
+html.ngpresent-capturing *::-webkit-scrollbar-button,
+html.ngpresent-capturing *::-webkit-scrollbar-corner {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 html.ngpresent-product-picking img.ngpresent-product-photo-option {

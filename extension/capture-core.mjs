@@ -33,6 +33,30 @@ export function normalizeSelectionRange({ startY, endY }) {
   return { startY: top, endY: bottom };
 }
 
+export function hasRemainingCaptureArea({
+  cursorY,
+  rangeEndY,
+  tolerance = 1
+}) {
+  return Number(rangeEndY) - Number(cursorY) > Number(tolerance);
+}
+
+export function calculateVisibleCaptureSlice({
+  cursorY,
+  rangeEndY,
+  scrollY,
+  contentHeight
+}) {
+  const cropTop = Math.max(0, Number(cursorY) - Number(scrollY));
+  const availableHeight = Math.max(0, Number(contentHeight) - cropTop);
+  const remainingHeight = Math.max(0, Number(rangeEndY) - Number(cursorY));
+
+  return {
+    cropTop,
+    height: Math.min(remainingHeight, availableHeight)
+  };
+}
+
 export function findNextCaptureNumber(fileNames) {
   const numbers = [...fileNames]
     .map((name) => /^(\d+)(?:-\d+)?\.(?:jpe?g|png)$/i.exec(name))
