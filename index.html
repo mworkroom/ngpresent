@@ -11,6 +11,54 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css">
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" integrity="sha512-z8IYLHO8bTgFqj+yrPyIJnzBDf7DDhWwiEsk4sY+Oe6J2M+WQequeGS7qioI5vT6rXgVRb4K1UVQC5ER7MKzKQ==" crossorigin="anonymous" defer></script>
 <link rel="stylesheet" href="./style.css">
+<style>
+.next-step-panel {
+margin-top: 18px;
+padding: 18px;
+border: 1px solid #b9e4f3;
+border-radius: 14px;
+background: linear-gradient(180deg, #f3fbfe, #eaf8fd);
+}
+.next-step-panel p {
+margin: 0 0 12px;
+color: #426573;
+font-size: 14px;
+font-weight: 680;
+}
+.next-step-link {
+display: grid;
+grid-template-columns: minmax(0, 1fr) 28px;
+align-items: center;
+gap: 14px;
+min-height: 74px;
+padding: 17px 19px;
+border: 1px solid #00a6dc;
+border-radius: 12px;
+background: #00b5ef;
+color: #ffffff;
+box-shadow: 0 12px 26px rgba(0, 181, 239, 0.2);
+transition: transform 160ms ease, background 160ms ease;
+}
+.next-step-link:hover {
+transform: translateY(-2px);
+background: #008fd0;
+}
+.next-step-link b {
+display: block;
+font-size: 18px;
+}
+.next-step-link small {
+display: block;
+margin-top: 5px;
+color: rgba(255, 255, 255, 0.88);
+font-size: 12px;
+line-height: 1.4;
+}
+.next-step-link svg {
+width: 28px;
+height: 28px;
+}
+</style>
 </head>
 <body>
 <div class="shell">
@@ -119,6 +167,16 @@
 </button>
 </div>
 <p class="status" id="status" role="status"></p>
+<div class="next-step-panel" id="next-step-panel" hidden>
+<p>PDF 저장이 끝났습니다. 다음 단계로 이동하세요.</p>
+<a class="next-step-link" href="https://www.nangok.app/guides/pdf.html">
+<span>
+<b>다음 단계: Zoom에서 보여주기</b>
+<small>방금 저장한 PDF를 Zoom에서 공유하는 방법</small>
+</span>
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+</a>
+</div>
 </div>
 </section>
 </div>
@@ -136,5 +194,29 @@
 </div>
 </div>
 <script src="./app.js" defer></script>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+const status = document.getElementById("status");
+const nextStepPanel = document.getElementById("next-step-panel");
+
+const updateNextStep = () => {
+const pdfSaved =
+status.dataset.kind === "success" &&
+/(저장했습니다|다운로드했습니다)/.test(status.textContent);
+
+if (pdfSaved) nextStepPanel.hidden = false;
+};
+
+new MutationObserver(updateNextStep).observe(status, {
+childList: true,
+subtree: true,
+characterData: true,
+attributes: true,
+attributeFilter: ["data-kind"]
+});
+
+updateNextStep();
+});
+</script>
 </body>
 </html>
